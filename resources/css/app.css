@@ -1,0 +1,223 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+
+@theme {
+    --font-sans: 'Plus Jakarta Sans', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+
+    --color-ink-950: #0f172a;
+    --color-ink-900: #1e293b;
+    --color-ink-800: #334155;
+    --color-brand-50: #eff6ff;
+    --color-brand-100: #dbeafe;
+    --color-brand-500: #3b82f6;
+    --color-brand-600: #1b64f2;
+    --color-brand-700: #1554d1;
+    --color-neon-cyan: #1b64f2;
+    --color-neon-teal: #3b82f6;
+    --color-neon-blue: #0284c7;
+    --color-dark-bg: #f5f7fb;
+    --color-dark-surface: #ffffff;
+    --color-dark-card: #ffffff;
+    --color-dark-border: #e2e8f0;
+}
+
+@layer base {
+    body {
+        background-color: #1b64f2;
+        color: #0f172a;
+        font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    }
+
+    svg {
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    :where(.table-base) {
+        width: 100%;
+        text-align: left;
+        font-size: 0.875rem;
+    }
+
+    :where(.table-base th) {
+        border-bottom: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+        padding: 0.875rem 1.25rem;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    :where(.table-base td) {
+        border-bottom: 1px solid #f1f5f9;
+        padding: 0.95rem 1.25rem;
+        color: #334155;
+        vertical-align: middle;
+    }
+}
+
+@layer components {
+    .field-input {
+        display: block;
+        width: 100%;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+        background-color: #f8fafc;
+        padding: 0.5625rem 0.875rem;
+        font-size: 0.8125rem;
+        color: #0f172a;
+        outline: none;
+        transition: all 0.15s ease-in-out;
+    }
+    .field-input:focus {
+        background-color: #ffffff;
+        border-color: #1b64f2;
+        box-shadow: 0 0 0 3px rgba(27, 100, 242, 0.15);
+    }
+    .field-input::placeholder {
+        color: #94a3b8;
+    }
+    .field-input option {
+        background-color: #ffffff;
+        color: #0f172a;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger,
+    .btn-purple,
+    .btn-emerald {
+        display: inline-flex;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 0.75rem;
+        padding: 0.5625rem 1rem;
+        font-size: 0.8125rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        transition: all 0.15s ease-in-out;
+    }
+    .btn-primary:active,
+    .btn-secondary:active,
+    .btn-danger:active {
+        transform: scale(0.98);
+    }
+    .btn-primary:disabled,
+    .btn-secondary:disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    .btn-primary {
+        background-color: #1b64f2;
+        color: #ffffff !important;
+        border: 1px solid transparent;
+        box-shadow: 0 4px 12px rgba(27, 100, 242, 0.22);
+    }
+    .btn-primary:hover {
+        background-color: #1554d1;
+        box-shadow: 0 6px 16px rgba(27, 100, 242, 0.32);
+    }
+
+    .btn-secondary {
+        border: 1px solid #e2e8f0;
+        background-color: #ffffff;
+        color: #334155;
+    }
+    .btn-secondary:hover {
+        background-color: #eff6ff;
+        border-color: #93c5fd;
+        color: #1b64f2;
+    }
+
+    .btn-danger {
+        background-color: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+    .btn-danger:hover {
+        background-color: #fee2e2;
+        border-color: #f87171;
+        color: #b91c1c;
+    }
+
+    .card {
+        border-radius: 1rem;
+        border: 1px solid rgba(226, 232, 240, 0.85);
+        background-color: #ffffff;
+        box-shadow: 0 2px 10px -3px rgba(15, 23, 42, 0.05);
+        color: #0f172a;
+    }
+
+    .badge-hardware {
+        background-color: #e0f2fe;
+        color: #0369a1;
+        border: 1px solid #bae6fd;
+        border-radius: 0.25rem;
+    }
+    .badge-software {
+        background-color: #f3e8ff;
+        color: #7e22ce;
+        border: 1px solid #e9d5ff;
+        border-radius: 0.25rem;
+    }
+    .badge-service {
+        background-color: #fef3c7;
+        color: #b45309;
+        border: 1px solid #fde68a;
+        border-radius: 0.25rem;
+    }
+
+    .table-base tr:hover td {
+        background-color: #f8fbff;
+    }
+
+    /* Global Light Theme Adapters for Legacy Dark Classes across Admin Sub-pages */
+    .bg-\[\#090E17\], .bg-\[\#080D16\], .bg-\[\#0A101C\] {
+        background-color: #f8fafc !important;
+    }
+    .bg-\[\#0D1522\], .bg-\[\#0E1624\], .bg-\[\#101924\], .bg-\[\#0C131F\], .bg-\[\#141F30\], .bg-\[\#152232\], .bg-\[\#162232\] {
+        background-color: #ffffff !important;
+    }
+    .border-\[\#1A2838\], .border-\[\#1A2536\], .border-\[\#1E2D40\], .border-\[\#162232\] {
+        border-color: #e2e8f0 !important;
+    }
+    .divide-\[\#1A2838\] > :not(:last-child) {
+        border-color: #e2e8f0 !important;
+    }
+    main :is(.text-white, .text-slate-100, .text-slate-200):not([class*="bg-[#1"]):not([class*="bg-blue-"]):not([class*="bg-slate-900"]):not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-indigo-"]):not([class*="bg-amber-"]):not([class*="from-[#1"]):not([class*="from-blue-"]) {
+        color: #0f172a !important;
+    }
+    main .text-slate-300, main .text-\[\#8FA0B2\], main .text-slate-400 {
+        color: #475569 !important;
+    }
+    main .text-\[\#6B8299\], main .text-slate-500 {
+        color: #64748b !important;
+    }
+    main .text-\[\#00DFB6\] {
+        color: #1b64f2 !important;
+    }
+    main .bg-\[\#00DFB6\] {
+        background-color: #1b64f2 !important;
+        color: #ffffff !important;
+    }
+    main .bg-\[\#00DFB6\]\/15, main .bg-\[\#00DFB6\]\/20, main .bg-\[\#00DFB6\]\/10 {
+        background-color: #dbeafe !important;
+        color: #1b64f2 !important;
+    }
+    main .border-\[\#00DFB6\]\/30, main .border-\[\#00DFB6\]\/40 {
+        border-color: #93c5fd !important;
+    }
+    main .hover\:bg-\[\#152232\]:hover, main .hover\:bg-white\/\[0\.02\]:hover {
+        background-color: #f8fbff !important;
+    }
+}
