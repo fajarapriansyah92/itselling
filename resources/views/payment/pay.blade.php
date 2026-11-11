@@ -302,7 +302,7 @@
         <div class="card">
             <div class="badge-gateway">
                 <span class="badge-dot"></span>
-                MIDTRANS SANDBOX GATEWAY
+                MIDTRANS PAYMENT GATEWAY
             </div>
 
             @if($order->status->value === 'paid' || $order->status->value === 'completed' || $order->status->value === 'shipped')
@@ -331,7 +331,7 @@
                 <!-- Form Pembayaran Virtual Account -->
                 <div id="payment-form-section">
                     <h1 class="header-title">Pembayaran {{ $order->payment_channel ?? 'Virtual Account' }}</h1>
-                    <p class="header-subtitle">Simulasi pembayaran instan untuk pengujian & demo aplikasi.</p>
+                    <p class="header-subtitle">Selesaikan pembayaran tagihan pesanan Anda melalui kanal resmi di bawah ini.</p>
 
                     <div class="bill-box">
                         <div class="bill-row">
@@ -355,7 +355,7 @@
                     <form id="payment-form" onsubmit="handlePay(event)">
                         @if($order->payment_method === 'credit_card')
                             <div class="field-group">
-                                <label class="field-label" for="card_number">Nomor Kartu Kredit (Midtrans Sandbox)</label>
+                                <label class="field-label" for="card_number">Nomor Kartu Kredit / Debit</label>
                                 <div class="input-wrapper">
                                     <input
                                         type="text"
@@ -377,7 +377,7 @@
                                         class="va-input"
                                         value="{{ $order->va_number ?? '123458123456' }}"
                                         required
-                                        placeholder="Contoh: 123458123456"
+                                        placeholder="Masukkan nomor Virtual Account"
                                         autocomplete="off"
                                     >
                                 </div>
@@ -418,9 +418,9 @@
             <div class="footer-note">
                 Sistem Pembayaran Terintegrasi IT Selling •
                 @if($order->payment_method === 'credit_card')
-                    <span>Midtrans 3D-Secure Sandbox</span>
+                    <span>Midtrans 3D-Secure</span>
                 @else
-                    <a href="https://simulator.sandbox.midtrans.com/{{ strtolower($order->payment_channel ?? 'bca') }}/va/index" target="_blank">Web Simulator Midtrans</a>
+                    <span>Verifikasi Virtual Account Otomatis</span>
                 @endif
             </div>
         </div>

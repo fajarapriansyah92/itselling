@@ -8,22 +8,28 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class ApiMonitorController extends Controller
 {
-    /**
-     * Display the Web Service Monitor dashboard and incoming HTTP request logs.
-     */
+    // Tampilkan halaman monitor Web Service beserta statistik QoS dan log trafik real-time
     public function index(Request $request): View|JsonResponse
     {
+        // Kalau request datang dari auto-refresh (AJAX polling setiap 2 detik), kirim data dalam bentuk JSON
         if ($request->wantsJson() || $request->has('poll')) {
             $latestLogs = ApiLog::latest()->take(25)->get();
 
+            // Hitung metrik performa (QoS) dan jumlah trafik dari masing-masing platform
             $totalRequests = ApiLog::count();
             $successRequests = ApiLog::whereBetween('status_code', [200, 299])->count();
             $avgResponseTime = (int) round(ApiLog::avg('response_time_ms') ?? 0);
+            $minResponseTime = (int) (ApiLog::min('response_time_ms') ?? 0);
+            $maxResponseTime = (int) (ApiLog::max('response_time_ms') ?? 0);
             $mobileRequests = ApiLog::where('client_type', 'like', '%Mobile%')
                 ->orWhere('client_type', 'like', '%Flutter%')
+                ->count();
+            $webRequests = ApiLog::where('client_type', 'like', '%Web%')
+                ->orWhere('client_type', 'like', '%Admin%')
                 ->count();
 
             $successRate = $totalRequests > 0 ? round(($successRequests / $totalRequests) * 100, 1) : 100;
@@ -32,8 +38,11 @@ class ApiMonitorController extends Controller
                 'metrics' => [
                     'total' => number_format($totalRequests),
                     'mobile' => number_format($mobileRequests),
+                    'web' => number_format($webRequests),
                     'success_rate' => $successRate,
                     'avg_time' => $avgResponseTime,
+                    'min_time' => $minResponseTime,
+                    'max_time' => $maxResponseTime,
                 ],
                 'logs' => $latestLogs->map(function (ApiLog $log) {
                     return [
@@ -52,29 +61,42 @@ class ApiMonitorController extends Controller
             ]);
         }
 
+        // Ambil 25 log request terakhir untuk ditampilkan pertama kali saat halaman dibuka
         $logs = ApiLog::latest()->take(25)->get();
 
         $totalRequests = ApiLog::count();
         $successRequests = ApiLog::whereBetween('status_code', [200, 299])->count();
         $avgResponseTime = (int) round(ApiLog::avg('response_time_ms') ?? 0);
+        $minResponseTime = (int) (ApiLog::min('response_time_ms') ?? 0);
+        $maxResponseTime = (int) (ApiLog::max('response_time_ms') ?? 0);
         $mobileRequests = ApiLog::where('client_type', 'like', '%Mobile%')
             ->orWhere('client_type', 'like', '%Flutter%')
             ->count();
+        $webRequests = ApiLog::where('client_type', 'like', '%Web%')
+            ->orWhere('client_type', 'like', '%Admin%')
+            ->count();
 
         $successRate = $totalRequests > 0 ? round(($successRequests / $totalRequests) * 100, 1) : 100;
+
+        // Ambil daftar token aktif yang di-hash SHA-256 di database sebagai bukti keamanan API
+        $activeTokensCount = PersonalAccessToken::count();
+        $activeTokens = PersonalAccessToken::with('tokenable')->latest()->take(10)->get();
 
         return view('admin.api-monitor.index', compact(
             'logs',
             'totalRequests',
             'successRate',
             'avgResponseTime',
-            'mobileRequests'
+            'minResponseTime',
+            'maxResponseTime',
+            'mobileRequests',
+            'webRequests',
+            'activeTokensCount',
+            'activeTokens'
         ));
     }
 
-    /**
-     * Truncate the API logs.
-     */
+    // Kosongkan seluruh isi tabel log Web Service kalau tombol Reset Log ditekan
     public function clear(): RedirectResponse
     {
         ApiLog::truncate();

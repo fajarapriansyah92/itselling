@@ -24,17 +24,20 @@ class OrderController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $orders = $request->user()->orders()
-            ->withCount('items')
+            ->withSum('items as items_count', 'quantity')
             ->latest()
             ->paginate(15);
 
         return OrderResource::collection($orders);
     }
 
+    // Buat pesanan baru dari checkout keranjang aplikasi mobile
     public function store(StoreOrderRequest $request, OrderService $orderService): JsonResponse
     {
+        // Proses simpan pesanan & potong stok di OrderService
         $order = $orderService->place($request->user(), $request->validated());
 
+        // Kirim notifikasi lonceng ke dashboard Admin bahwa ada pesanan baru masuk
         AdminNotification::notifyNewOrder($order);
 
         return (new OrderResource($order))
@@ -43,13 +46,16 @@ class OrderController extends Controller
             ->setStatusCode(201);
     }
 
+    // Ambil detail satu pesanan beserta item produk di dalamnya
     public function show(Order $order): OrderResource
     {
+        // Pastikan user hanya bisa melihat pesanannya sendiri
         Gate::authorize('view', $order);
 
         return new OrderResource($order->load('items'));
     }
 
+    // Endpoint pembaruan status pesanan
     public function simulateStatus(Request $request, Order $order): OrderResource
     {
         Gate::authorize('view', $order);
@@ -60,18 +66,20 @@ class OrderController extends Controller
 
         $statusEnum = OrderStatus::from($request->input('status'));
 
+        // Update status, nomor resi pengiriman, dan waktu bayar/selesai
         $order->update([
             'status' => $statusEnum,
-            'tracking_number' => $statusEnum === OrderStatus::Shipped ? 'RESI-DUMMY-'.mt_rand(100000, 999999) : $order->tracking_number,
+            'tracking_number' => $statusEnum === OrderStatus::Shipped ? 'JNE-'.mt_rand(1000000000, 9999999999) : $order->tracking_number,
             'paid_at' => $statusEnum === OrderStatus::Paid ? now() : $order->paid_at,
             'completed_at' => $statusEnum === OrderStatus::Completed ? now() : $order->completed_at,
         ]);
 
+        // Kalau pesanan berisi produk software/lisensi dan sudah dibayar, otomatis buatkan kode lisensinya
         if (in_array($statusEnum, [OrderStatus::Paid, OrderStatus::Processing, OrderStatus::Shipped, OrderStatus::Completed], true)) {
             $order->loadMissing('items.product');
             foreach ($order->items as $item) {
                 if ($item->license_key === null && $item->product?->type === ProductType::Software) {
-                    $keys = OrderItem::generateDummyKeys($item->product_name, $item->quantity);
+                    $keys = OrderItem::generateLicenseKeys($item->product_name, $item->quantity);
                     $item->update([
                         'license_key' => json_encode($keys),
                     ]);
@@ -86,6 +94,7 @@ class OrderController extends Controller
         return new OrderResource($order->load('items'));
     }
 
+    // Konfirmasi dari pembeli bahwa barang hardware sudah diterima
     public function receive(Request $request, Order $order): OrderResource
     {
         Gate::authorize('view', $order);
@@ -94,6 +103,7 @@ class OrderController extends Controller
             abort(400, 'Pesanan belum dalam status pengiriman.');
         }
 
+        // Ubah status pesanan jadi Selesai (Completed)
         $order->update([
             'status' => OrderStatus::Completed,
             'completed_at' => $order->completed_at ?? now(),

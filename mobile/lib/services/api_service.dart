@@ -62,19 +62,50 @@ class ApiService {
 
   // ---------- Katalog ----------
 
-  static Future<List<Category>> fetchCategories() async {
-    final json = await _client.get('/categories');
+  static Future<List<Category>> fetchCategories({bool silent = false}) async {
+    final json = await _client.get('/categories', silent: silent);
     return (json['data'] as List<dynamic>).map((item) => Category.fromJson(item as Map<String, dynamic>)).toList();
   }
 
-  static Future<Paginated<Product>> fetchProducts({int page = 1, String? category, String? search}) async {
-    final json = await _client.get('/products', query: {
-      'page': '$page',
-      if (category != null) 'category': category,
-      if (search != null && search.isNotEmpty) 'search': search,
-    });
+  static Future<Paginated<Product>> fetchProducts({int page = 1, String? category, String? search, bool silent = false}) async {
+    final json = await _client.get(
+      '/products',
+      query: {
+        'page': '$page',
+        if (category != null) 'category': category,
+        if (search != null && search.isNotEmpty) 'search': search,
+      },
+      silent: silent,
+    );
 
     return Paginated.fromJson(json, Product.fromJson);
+  }
+
+  // ---------- Keranjang (Cart Web Service Sync) ----------
+
+  static Future<void> fetchCart({required int itemsCount, required double totalPrice}) async {
+    try {
+      await _client.get('/cart', query: {
+        'items_count': '$itemsCount',
+        'total_price': '${totalPrice.toInt()}',
+      });
+    } catch (_) {}
+  }
+
+  static Future<void> syncCartAction({
+    required String action,
+    int? productId,
+    int? quantity,
+    required int itemsCount,
+  }) async {
+    try {
+      await _client.post('/cart', {
+        'action': action,
+        if (productId != null) 'product_id': productId,
+        if (quantity != null) 'quantity': quantity,
+        'items_count': itemsCount,
+      });
+    } catch (_) {}
   }
 
   static Future<Product> fetchProduct(String slug) async {
@@ -155,8 +186,8 @@ class ApiService {
     return Order.fromJson(json['data'] as Map<String, dynamic>);
   }
 
-  static Future<List<OrderMessage>> fetchOrderMessages(String orderNumber) async {
-    final json = await _client.get('/orders/$orderNumber/messages');
+  static Future<List<OrderMessage>> fetchOrderMessages(String orderNumber, {bool silent = false}) async {
+    final json = await _client.get('/orders/$orderNumber/messages', silent: silent);
     final data = json['data'] as List<dynamic>;
     return data.map((item) => OrderMessage.fromJson(item as Map<String, dynamic>)).toList();
   }
@@ -196,8 +227,8 @@ class ApiService {
     return ProductReview.fromJson(data);
   }
 
-  static Future<List<OrderMessage>> fetchProductMessages(String productSlug) async {
-    final json = await _client.get('/products/$productSlug/messages');
+  static Future<List<OrderMessage>> fetchProductMessages(String productSlug, {bool silent = false}) async {
+    final json = await _client.get('/products/$productSlug/messages', silent: silent);
     final data = json['data'] as List<dynamic>? ?? [];
     return data.map((item) => OrderMessage.fromJson(item as Map<String, dynamic>)).toList();
   }
@@ -217,9 +248,9 @@ class ApiService {
     return data.map((item) => UserInquiry.fromJson(item as Map<String, dynamic>)).toList();
   }
 
-  static Future<int> fetchUserUnreadChatCount() async {
+  static Future<int> fetchUserUnreadChatCount({bool silent = true}) async {
     try {
-      final json = await _client.get('/user/inquiries/unread-count');
+      final json = await _client.get('/user/inquiries/unread-count', silent: silent);
       return (json['unread_count'] as num?)?.toInt() ?? 0;
     } catch (_) {
       return 0;

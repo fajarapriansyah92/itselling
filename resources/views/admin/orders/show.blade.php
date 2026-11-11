@@ -210,16 +210,12 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-extrabold text-slate-900 text-sm">Menunggu Pembayaran via Payment Gateway</h3>
+                            <h3 class="font-extrabold text-slate-900 text-sm">Menunggu Pembayaran dari Pelanggan</h3>
                             <p class="text-xs text-slate-600 mt-0.5">
-                                Tagihan diproses via Midtrans ({{ $order->payment_channel ?? 'Virtual Account' }}). Status otomatis menjadi Lunas setelah dibayar.
+                                Tagihan diproses via Payment Gateway ({{ $order->payment_channel ?? 'Virtual Account' }}). Status pesanan akan otomatis berubah menjadi Lunas setelah pelanggan menyelesaikan pembayaran di aplikasi mobile.
                             </p>
                         </div>
                     </div>
-                    <a href="{{ route('payment.web', $order) }}" target="_blank"
-                       class="btn-primary rounded-full px-5 py-2.5 text-xs font-bold shrink-0">
-                        Buka Simulator Web Bayar
-                    </a>
                 </div>
             @elseif ($isHardware)
                 @if ($isPaid)
@@ -427,7 +423,7 @@
                         <p class="text-xs text-slate-500">Daftar produk, paket layanan, atau lisensi dalam pesanan ini</p>
                     </div>
                     <span class="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-extrabold text-[#1B64F2] border border-blue-200">
-                        {{ $order->items->count() }} Item
+                        {{ (int) $order->items->sum('quantity') }} Item
                     </span>
                 </div>
 

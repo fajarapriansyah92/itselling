@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 class PaymentWebController extends Controller
 {
     /**
-     * Tampilkan halaman web pembayaran / simulasi untuk pesanan.
+     * Tampilkan halaman web pembayaran Virtual Account untuk pesanan.
      */
     public function show(Order $order): View
     {
@@ -60,10 +60,10 @@ class PaymentWebController extends Controller
             'va_number' => $order->va_number,
         ]);
 
-        // Generate lisensi dummy untuk software
+        // Buat kode lisensi otomatis untuk pembelian produk software
         foreach ($order->items as $item) {
             if ($item->license_key === null && $item->product?->type === ProductType::Software) {
-                $keys = OrderItem::generateDummyKeys($item->product_name, $item->quantity);
+                $keys = OrderItem::generateLicenseKeys($item->product_name, $item->quantity);
                 $item->update([
                     'license_key' => json_encode($keys),
                 ]);

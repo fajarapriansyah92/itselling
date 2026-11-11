@@ -11,12 +11,9 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
+    // Buat akun utama Administrator untuk login ke Web Control Panel
     public function run(): void
     {
-        // 1 Akun Admin Tunggal untuk Web Control Panel
         User::updateOrCreate(
             ['email' => 'admin@itselling.test'],
             [
@@ -27,21 +24,5 @@ class DatabaseSeeder extends Seeder
                 'address' => 'Jakarta, Indonesia',
             ]
         );
-
-        // 1 Akun Pelanggan Demo untuk Login Aplikasi Mobile (Flutter)
-        User::updateOrCreate(
-            ['email' => 'pelanggan@itselling.test'],
-            [
-                'name' => 'Pelanggan Demo',
-                'password' => 'password',
-                'role' => UserRole::Customer,
-                'phone' => '089876543210',
-                'address' => 'Jl. Pengadaan No. 12, Jakarta Barat',
-            ]
-        );
-
-        $this->call([
-            CatalogSeeder::class,
-        ]);
     }
 }

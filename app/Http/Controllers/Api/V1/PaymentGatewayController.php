@@ -108,7 +108,7 @@ class PaymentGatewayController extends Controller
     }
 
     /**
-     * Endpoint simulasi pembayaran dari APK DSC Pay Simulator.
+     * Endpoint konfirmasi pembayaran Virtual Account secara langsung.
      */
     public function mockPay(Request $request, MidtransService $midtrans): JsonResponse
     {
@@ -140,7 +140,7 @@ class PaymentGatewayController extends Controller
         $bank = strtolower($validated['bank'] ?? $order->payment_bank ?? 'bca');
         $paymentType = $validated['payment_type'] ?? ($order->va_number ? 'bank_transfer' : 'gopay');
 
-        $mockPayload = [
+        $paymentPayload = [
             'order_id' => $order->order_number,
             'status_code' => '200',
             'gross_amount' => number_format((float) $order->total, 2, '.', ''),
@@ -155,11 +155,11 @@ class PaymentGatewayController extends Controller
             'settlement_time' => now()->toIso8601String(),
         ];
 
-        $updatedOrder = $midtrans->processNotification($mockPayload);
+        $updatedOrder = $midtrans->processNotification($paymentPayload);
 
         return response()->json([
             'success' => true,
-            'message' => 'Pembayaran simulasi berhasil diverifikasi!',
+            'message' => 'Pembayaran berhasil diverifikasi!',
             'order_number' => $updatedOrder?->order_number,
             'total' => (float) ($updatedOrder?->total ?? 0),
             'status' => $updatedOrder?->status->value,

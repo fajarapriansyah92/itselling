@@ -13,13 +13,14 @@ use Illuminate\View\View;
 
 class OrderController extends Controller
 {
+    // Tampilkan daftar semua pesanan masuk dengan filter status & pencarian nomor invoice/nama pembeli
     public function index(Request $request): View
     {
         $status = OrderStatus::tryFrom($request->string('status')->toString());
 
         $orders = Order::query()
             ->with('user')
-            ->withCount('items')
+            ->withSum('items as items_count', 'quantity')
             ->when($status !== null, fn ($query) => $query->where('status', $status))
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $keyword = '%'.$request->string('search')->trim()->toString().'%';
@@ -40,8 +41,10 @@ class OrderController extends Controller
         ]);
     }
 
+    // Tampilkan halaman detail pesanan, rincian barang, dan riwayat chat pesanan
     public function show(Order $order): View
     {
+        // Tandai pesan chat dari pelanggan pada pesanan ini sebagai sudah dibaca admin
         $order->messages()
             ->where('sender_type', 'customer')
             ->whereNull('read_at')
@@ -52,6 +55,7 @@ class OrderController extends Controller
         ]);
     }
 
+    // Ubah status pesanan (misal dari Dibayar -> Diproses -> Dikirim -> Selesai) dan simpan nomor resi
     public function update(UpdateOrderStatusRequest $request, Order $order, OrderService $orderService): RedirectResponse
     {
         $orderService->changeStatus(

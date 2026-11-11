@@ -640,6 +640,47 @@
                     }
                 });
             });
+
+            // Sinkronisasi Real-Time Web Admin dengan RESTful Web Service (/api/v1/admin/*)
+            (async function syncWebAdminWithRestWebService() {
+                const path = window.location.pathname;
+                let apiEndpoint = '/api/v1/admin/dashboard';
+
+                if (path.includes('/admin/products')) {
+                    apiEndpoint = '/api/v1/admin/products' + window.location.search;
+                } else if (path.includes('/admin/categories')) {
+                    apiEndpoint = '/api/v1/admin/categories';
+                } else if (path.includes('/admin/orders')) {
+                    apiEndpoint = '/api/v1/admin/orders' + window.location.search;
+                } else if (path.includes('/admin/customers')) {
+                    apiEndpoint = '/api/v1/admin/customers';
+                } else if (path.includes('/admin/chats')) {
+                    apiEndpoint = '/api/v1/admin/chats';
+                } else if (path.includes('/admin/reviews')) {
+                    apiEndpoint = '/api/v1/admin/reviews';
+                } else if (path.includes('/admin/reports')) {
+                    apiEndpoint = '/api/v1/admin/reports/sales';
+                } else if (path.includes('/admin/api-monitor')) {
+                    return;
+                }
+
+                try {
+                    const start = performance.now();
+                    console.info(`🌐 [HTTP REQUEST] ---> GET ${window.location.origin}${apiEndpoint} | Platform: Web Control Panel (Admin)`);
+                    const res = await fetch(apiEndpoint, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-Client-Platform': 'Web Control Panel (Admin)'
+                        }
+                    });
+                    const elapsed = Math.round(performance.now() - start);
+                    const text = await res.clone().text();
+                    console.info(`✅ [HTTP RESPONSE] <--- ${res.status} (${elapsed}ms) | Data: ${text.length} bytes | ${apiEndpoint}`);
+                } catch (e) {
+                    // Ignore network error
+                }
+            })();
         });
     </script>
 </body>

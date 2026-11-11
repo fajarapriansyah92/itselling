@@ -35,7 +35,7 @@ class CustomerController extends Controller
 
         return view('admin.customers.show', [
             'customer' => $customer,
-            'orders' => $customer->orders()->withCount('items')->latest()->get(),
+            'orders' => $customer->orders()->withSum('items as items_count', 'quantity')->latest()->get(),
         ]);
     }
 }

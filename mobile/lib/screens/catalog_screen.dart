@@ -96,9 +96,9 @@ class _CatalogScreenState extends State<CatalogScreen> {
     }
   }
 
-  Future<void> _loadCategories() async {
+  Future<void> _loadCategories({bool silent = false}) async {
     try {
-      final categories = await ApiService.fetchCategories();
+      final categories = await ApiService.fetchCategories(silent: silent);
       if (mounted) {
         setState(() => _categories = categories);
       }
@@ -109,13 +109,14 @@ class _CatalogScreenState extends State<CatalogScreen> {
 
   Future<void> _silentRefreshProducts() async {
     try {
-      _loadCategories();
+      _loadCategories(silent: true);
       final result = await ApiService.fetchProducts(
         page: 1,
         category: _selectedCategory,
         search: _searchController.text.trim().isEmpty
             ? null
             : _searchController.text.trim(),
+        silent: true,
       );
       if (mounted) {
         setState(() {

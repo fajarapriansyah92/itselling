@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' hide Category;
 
 import '../models/models.dart';
+import '../services/api_service.dart';
 
 class CartItem {
   CartItem(this.product, this.quantity);
@@ -33,6 +34,13 @@ class CartProvider extends ChangeNotifier {
     _items[product.id] = CartItem(product, newQuantity);
     notifyListeners();
 
+    ApiService.syncCartAction(
+      action: 'add',
+      productId: product.id,
+      quantity: newQuantity,
+      itemsCount: totalQuantity,
+    );
+
     return true;
   }
 
@@ -50,15 +58,33 @@ class CartProvider extends ChangeNotifier {
     }
 
     notifyListeners();
+
+    ApiService.syncCartAction(
+      action: 'update_quantity',
+      productId: productId,
+      quantity: quantity,
+      itemsCount: totalQuantity,
+    );
   }
 
   void remove(int productId) {
     _items.remove(productId);
     notifyListeners();
+
+    ApiService.syncCartAction(
+      action: 'remove',
+      productId: productId,
+      itemsCount: totalQuantity,
+    );
   }
 
   void clear() {
     _items.clear();
     notifyListeners();
+
+    ApiService.syncCartAction(
+      action: 'clear',
+      itemsCount: 0,
+    );
   }
 }

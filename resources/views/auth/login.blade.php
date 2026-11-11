@@ -122,23 +122,6 @@
         .btn-primary:hover { background: #3B82F6; }
         .btn-primary:active { transform: scale(0.99); }
 
-        .divider { display: flex; align-items: center; gap: 12px; margin: 22px 0 16px; font-size: 12px; color: #9CA3AF; }
-        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #F0F1F3; }
-
-        .demo-btn {
-            width: 100%;
-            display: flex; align-items: center; justify-content: space-between; gap: 10px;
-            padding: 10px 14px;
-            border: 1px solid #E5E7EB; border-radius: 6px;
-            background: #FFFFFF; cursor: pointer;
-            font-family: inherit; text-align: left;
-            transition: border-color .15s, background .15s;
-        }
-        .demo-btn:hover { border-color: #93C5FD; background: #F5F9FF; }
-        .demo-email { font-size: 13px; font-weight: 600; color: #111827; }
-        .demo-hint { font-size: 11px; color: #9CA3AF; margin-top: 2px; }
-        .demo-action { font-size: 12px; font-weight: 600; color: #3B82F6; white-space: nowrap; }
-
         .alert {
             margin-bottom: 18px; padding: 12px 14px;
             border: 1px solid #FECACA; border-radius: 6px;

@@ -38,7 +38,7 @@ class OrderResource extends JsonResource
             'va_number' => $this->va_number,
             'payment_bank' => $this->payment_bank,
             'qr_code_url' => $this->qr_code_url,
-            'items_count' => $this->whenCounted('items'),
+            'items_count' => (int) ($this->items_count ?? $this->items->sum('quantity')),
             'items' => OrderItemResource::collection($this->whenLoaded('items')),
             'created_at' => $this->created_at?->toIso8601String(),
             'paid_at' => $this->paid_at?->toIso8601String(),

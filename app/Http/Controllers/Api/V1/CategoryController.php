@@ -9,6 +9,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CategoryController extends Controller
 {
+    // Ambil semua daftar kategori beserta jumlah produk aktif di masing-masing kategori
     public function index(): AnonymousResourceCollection
     {
         $categories = Category::query()

@@ -15,6 +15,7 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
+    // Generate kode SKU otomatis berdasarkan tipe produk (misal HW-001, SW-001, JASA-001)
     public function generateSku(Request $request): JsonResponse
     {
         $type = $request->query('type');
@@ -27,6 +28,7 @@ class ProductController extends Controller
         return response()->json(['sku' => $sku]);
     }
 
+    // Tampilkan halaman daftar produk di Web Admin beserta fitur cari & filter kategori
     public function index(Request $request): View
     {
         $products = Product::query()
@@ -47,11 +49,13 @@ class ProductController extends Controller
         ]);
     }
 
+    // Buka halaman form tambah produk baru
     public function create(): View
     {
         return $this->form(new Product(['is_active' => true, 'unit' => 'unit', 'type' => ProductType::Hardware]));
     }
 
+    // Simpan produk baru beserta upload gambarnya ke storage/app/public/products
     public function store(ProductRequest $request): RedirectResponse
     {
         Product::create([
@@ -62,11 +66,13 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('status', 'Produk berhasil ditambahkan.');
     }
 
+    // Buka halaman form edit produk
     public function edit(Product $product): View
     {
         return $this->form($product);
     }
 
+    // Simpan perubahan data produk dan ganti/hapus file gambar lama jika diubah
     public function update(ProductRequest $request, Product $product): RedirectResponse
     {
         $data = $request->safe()->except(['image', 'remove_image']);

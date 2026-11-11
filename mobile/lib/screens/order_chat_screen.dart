@@ -71,7 +71,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
     }
 
     try {
-      final messages = await ApiService.fetchOrderMessages(widget.orderNumber);
+      final messages = await ApiService.fetchOrderMessages(widget.orderNumber, silent: !initial);
       if (mounted) {
         final hadNewMessages = messages.length != _messages.length ||
             (messages.isNotEmpty && _messages.isNotEmpty && messages.last.id != _messages.last.id);
@@ -339,13 +339,27 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                     child: TextField(
                       controller: _textController,
                       style: const TextStyle(color: _textDark, fontSize: 13),
+                      cursorColor: _primaryBlue,
                       minLines: 1,
                       maxLines: 4,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
                         hintText: 'Ketik pesan ke admin / teknisi...',
-                        hintStyle: TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        border: InputBorder.none,
+                        hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: _primaryBlue, width: 1.5),
+                        ),
                       ),
                       onSubmitted: (_) => _sendMessage(),
                     ),

@@ -98,29 +98,43 @@ class ApiClient {
     }
   }
 
+  // Header standar setiap request HTTP ke Laravel (otomatis bawa Bearer Token kalau sudah login)
   Map<String, String> get _headers => {
         'Accept': 'application/json',
         'User-Agent': 'Flutter-Android-Client/1.0',
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
 
+  // Gabungkan alamat baseUrl server dengan path endpoint /api/v1/...
   Uri _uri(String path, [Map<String, String>? query]) {
     final uri = Uri.parse('$_baseUrl/api/v1$path');
     return (query == null || query.isEmpty) ? uri : uri.replace(queryParameters: query);
   }
 
-  Future<Map<String, dynamic>> get(String path, {Map<String, String>? query}) {
-    return _send(() => http.get(_uri(path, query), headers: _headers));
+  // Method untuk kirim request GET ke Web Service
+  Future<Map<String, dynamic>> get(String path, {Map<String, String>? query, bool silent = false}) {
+    final headers = silent ? {..._headers, 'X-Silent-Poll': '1'} : _headers;
+    return _send(() => http.get(_uri(path, query), headers: headers), silent: silent);
   }
 
-  Future<Map<String, dynamic>> post(String path, [Map<String, dynamic>? body]) {
-    return _send(() => http.post(
-          _uri(path),
-          headers: {..._headers, 'Content-Type': 'application/json'},
-          body: jsonEncode(body ?? const {}),
-        ));
+  // Method untuk kirim request POST (kirim data JSON) ke Web Service
+  Future<Map<String, dynamic>> post(String path, [Map<String, dynamic>? body, bool silent = false]) {
+    final headers = {
+      ..._headers,
+      'Content-Type': 'application/json',
+      if (silent) 'X-Silent-Poll': '1',
+    };
+    return _send(
+      () => http.post(
+        _uri(path),
+        headers: headers,
+        body: jsonEncode(body ?? const {}),
+      ),
+      silent: silent,
+    );
   }
 
+  // Method untuk kirim request PUT (update data profil, dll) ke Web Service
   Future<Map<String, dynamic>> put(String path, Map<String, dynamic> body) {
     return _send(() => http.put(
           _uri(path),
@@ -129,6 +143,7 @@ class ApiClient {
         ));
   }
 
+  // Method khusus untuk upload file gambar (misal bukti bayar) lewat multipart POST
   Future<Map<String, dynamic>> uploadBytes(
     String path, {
     required String field,
@@ -144,15 +159,22 @@ class ApiClient {
     });
   }
 
-  Future<Map<String, dynamic>> _send(Future<http.Response> Function() request) async {
+  // Fungsi inti yang mengeksekusi request HTTP, mencatat waktu respon (ms), dan mengubah balasan JSON jadi Map
+  Future<Map<String, dynamic>> _send(Future<http.Response> Function() request, {bool silent = false}) async {
     final http.Response response;
     final stopwatch = Stopwatch()..start();
 
     try {
       response = await request().timeout(_timeout);
       stopwatch.stop();
-      debugPrint('🌐 [HTTP REQUEST] ---> ${response.request?.method ?? 'HTTP'} ${response.request?.url}');
-      debugPrint('📥 [HTTP RESPONSE] <--- ${response.statusCode} (${stopwatch.elapsedMilliseconds}ms) | Data: ${response.body.length} bytes');
+      // Tampilkan log request & response di terminal Flutter
+      if (!silent) {
+        final method = response.request?.method ?? 'HTTP';
+        final url = response.request?.url.toString() ?? '';
+        final path = response.request?.url.path ?? '';
+        debugPrint('🌐 [HTTP REQUEST]  ---> $method $url | Client: Mobile (Flutter Client)');
+        debugPrint('✅ [HTTP RESPONSE] <--- ${response.statusCode} (${stopwatch.elapsedMilliseconds}ms) | Data: ${response.body.length} bytes | $path');
+      }
     } on TimeoutException {
       throw ApiException('Server tidak merespons. Periksa koneksi dan alamat server.');
     } catch (e) {
@@ -162,6 +184,7 @@ class ApiClient {
       throw ApiException('Tidak dapat terhubung ke server ($_baseUrl).');
     }
 
+    // Decode isi body JSON dari server Laravel
     var body = <String, dynamic>{};
     if (response.body.isNotEmpty) {
       try {
@@ -174,10 +197,12 @@ class ApiClient {
       }
     }
 
+    // Kalau status HTTP 200-299 (berhasil), langsung kembalikan datanya
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return body;
     }
 
+    // Kalau status 401 (token hangus/belum login), hapus token lokal dan arahkan ke halaman login
     if (response.statusCode == 401) {
       if (_token != null) {
         await setToken(null);

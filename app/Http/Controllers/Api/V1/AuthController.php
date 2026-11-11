@@ -15,6 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    // Daftar akun pelanggan baru dari aplikasi mobile lalu langsung buatkan token login
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create([
@@ -25,10 +26,12 @@ class AuthController extends Controller
         return $this->tokenResponse($user, $request->validated('device_name'), 'Registrasi berhasil.', 201);
     }
 
+    // Proses login pelanggan: cek kecocokan email dan password di database
     public function login(LoginRequest $request): JsonResponse
     {
         $user = User::query()->where('email', $request->validated('email'))->first();
 
+        // Kalau email tidak ditemukan atau password salah, kirim pesan error validasi
         if ($user === null || ! Hash::check($request->validated('password'), $user->password)) {
             throw ValidationException::withMessages([
                 'email' => 'Email atau kata sandi tidak valid.',
@@ -38,6 +41,7 @@ class AuthController extends Controller
         return $this->tokenResponse($user, $request->validated('device_name'), 'Login berhasil.');
     }
 
+    // Hapus token Sanctum yang sedang dipakai saat user klik tombol logout
     public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
@@ -45,6 +49,7 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logout berhasil.']);
     }
 
+    // Helper untuk membungkus response JSON berisi Bearer Token dan data profil user
     private function tokenResponse(User $user, string $deviceName, string $message, int $status = 200): JsonResponse
     {
         return response()->json([

@@ -23,11 +23,14 @@ class OrderService
      */
     public function place(User $customer, array $data): Order
     {
+        // Pakai database transaction biar kalau ada error di tengah jalan, data gak masuk setengah-setengah
         return DB::transaction(function () use ($customer, $data): Order {
+            // Hitung total qty per product_id dari keranjang
             $quantities = collect($data['items'])
                 ->groupBy('product_id')
                 ->map(fn ($items): int => (int) $items->sum('quantity'));
 
+            // Kunci baris produk (lockForUpdate) supaya stok tidak bentrok kalau ada yang beli bersamaan
             $products = Product::query()
                 ->whereKey($quantities->keys())
                 ->lockForUpdate()
@@ -36,6 +39,7 @@ class OrderService
 
             $errors = [];
 
+            // Cek apakah produk masih aktif dan stoknya cukup
             foreach ($quantities as $productId => $quantity) {
                 $product = $products->get($productId);
 
@@ -50,6 +54,7 @@ class OrderService
                 throw ValidationException::withMessages($errors);
             }
 
+            // Kalau alamat kosong (misal beli software/lisensi digital), isi keterangan pengiriman digital otomatis
             $shippingAddress = trim($data['shipping_address'] ?? '');
             if ($shippingAddress === '') {
                 $isAllDigital = $products->every(fn ($p) => $p->type === ProductType::Software);
@@ -62,6 +67,7 @@ class OrderService
             $paymentChannel = $data['payment_channel'] ?? null;
             $isCreditCard = $paymentMethod === 'credit_card';
 
+            // Generate nomor Virtual Account sesuai bank yang dipilih pembeli
             $vaNumber = null;
             $paymentBank = null;
             if ($paymentMethod === 'bank_transfer' && ! empty($paymentChannel)) {
@@ -69,6 +75,7 @@ class OrderService
                 $vaNumber = self::generateVaNumber($paymentChannel, $data['recipient_phone'] ?? null);
             }
 
+            // Simpan data header pesanan ke tabel orders
             $order = $customer->orders()->create([
                 'order_number' => Order::generateOrderNumber(),
                 'status' => $isCreditCard ? OrderStatus::Paid : OrderStatus::Pending,
@@ -86,6 +93,7 @@ class OrderService
 
             $total = 0;
 
+            // Simpan rincian barang/jasa yang dibeli ke tabel order_items dan kurangi stok produk
             foreach ($quantities as $productId => $quantity) {
                 $product = $products->get($productId);
                 $subtotal = (float) $product->price * $quantity;
@@ -99,18 +107,21 @@ class OrderService
                     'subtotal' => $subtotal,
                 ]);
 
+                // Kalau bayar pakai kartu kredit (langsung lunas) dan produknya software, langsung terbitkan kode lisensi
                 if ($isCreditCard && $product->type === ProductType::Software) {
-                    $keys = OrderItem::generateDummyKeys($item->product_name, $item->quantity);
+                    $keys = OrderItem::generateLicenseKeys($item->product_name, $item->quantity);
                     $item->update([
                         'license_key' => json_encode($keys),
                     ]);
                 }
 
+                // Kurangi stok barang kalau produk punya stok fisik/lisensi
                 if ($product->stock !== null) {
                     $product->decrement('stock', $quantity);
                 }
             }
 
+            // Update total harga keseluruhan pesanan
             $order->update(['total' => $total]);
 
             if ($isCreditCard) {
@@ -143,7 +154,7 @@ class OrderService
                 $order->loadMissing('items.product');
                 foreach ($order->items as $item) {
                     if ($item->license_key === null && $item->product?->type === ProductType::Software) {
-                        $keys = OrderItem::generateDummyKeys($item->product_name, $item->quantity);
+                        $keys = OrderItem::generateLicenseKeys($item->product_name, $item->quantity);
                         $item->update([
                             'license_key' => json_encode($keys),
                         ]);
@@ -190,7 +201,7 @@ class OrderService
     }
 
     /**
-     * Generate nomor Virtual Account simulasi sesuai bank tujuan.
+     * Buat nomor Virtual Account sesuai kode bank tujuan dan nomor telepon pelanggan.
      */
     public static function generateVaNumber(?string $bank, ?string $phone = null): string
     {

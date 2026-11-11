@@ -71,7 +71,7 @@ class _ProductChatScreenState extends State<ProductChatScreen> {
     }
 
     try {
-      final messages = await ApiService.fetchProductMessages(widget.product.slug);
+      final messages = await ApiService.fetchProductMessages(widget.product.slug, silent: !initial);
       if (mounted) {
         final hadNewMessages = messages.length != _messages.length ||
             (messages.isNotEmpty && _messages.isNotEmpty && messages.last.id != _messages.last.id);

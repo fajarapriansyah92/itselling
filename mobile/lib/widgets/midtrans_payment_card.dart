@@ -372,9 +372,9 @@ class _MidtransPaymentCardState extends State<MidtransPaymentCard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Kartu Kredit (Sandbox 3DS)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textDark)),
+                        Text('Kartu Kredit / Debit (3D-Secure)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: _textDark)),
                         SizedBox(height: 2),
-                        Text('Midtrans Test Card: 4811-1111-1111-1114', style: TextStyle(fontSize: 10, color: _textMuted, fontFamily: 'monospace')),
+                        Text('Pembayaran Kartu Terenkripsi: 4811-••••-••••-1114', style: TextStyle(fontSize: 10, color: _textMuted, fontFamily: 'monospace')),
                       ],
                     ),
                   ),

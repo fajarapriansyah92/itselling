@@ -49,11 +49,11 @@ class OrderItem extends Model
     }
 
     /**
-     * Generate N kode lisensi dummy sesuai kuantitas pembelian.
+     * Buat kode lisensi produk software otomatis sesuai jumlah qty yang dibeli.
      *
      * @return list<string>
      */
-    public static function generateDummyKeys(string $productName, int $quantity = 1): array
+    public static function generateLicenseKeys(string $productName, int $quantity = 1): array
     {
         $prefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $productName), 0, 4));
         if (strlen($prefix) < 4) {

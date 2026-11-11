@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/cart_provider.dart';
+import '../services/api_service.dart';
 import 'cart_screen.dart';
 import 'catalog_screen.dart';
 import 'orders_screen.dart';
@@ -15,7 +16,10 @@ class HomeShell extends StatefulWidget {
 }
 
 class _HomeShellState extends State<HomeShell> {
+  static const _catalogTab = 0;
+  static const _cartTab = 1;
   static const _ordersTab = 2;
+  static const _profileTab = 3;
 
   final _ordersKey = GlobalKey<OrdersScreenState>();
   int _index = 0;
@@ -30,8 +34,15 @@ class _HomeShellState extends State<HomeShell> {
   void _selectTab(int index) {
     setState(() => _index = index);
 
-    if (index == _ordersTab) {
+    if (index == _catalogTab) {
+      ApiService.fetchProducts(page: 1);
+    } else if (index == _cartTab) {
+      final cart = context.read<CartProvider>();
+      ApiService.fetchCart(itemsCount: cart.totalQuantity, totalPrice: cart.totalPrice);
+    } else if (index == _ordersTab) {
       _ordersKey.currentState?.reload();
+    } else if (index == _profileTab) {
+      ApiService.fetchProfile().ignore();
     }
   }
 
